@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Beneficiaries - NexBank</title>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+	<div class="container">
+		<header class="navbar glass-panel">
+			<h2>NexBank</h2>
+			<nav class="nav-links">
+				<a href="dashboard.html">Dashboard</a>
+				<a href="bene.html" class="active">Beneficiaries</a>
+				<a href="transfer.html">Transfer</a>
+				<a href="status.html">History</a>
+				<a href="#" id="logout-btn">Logout</a>
+			</nav>
+		</header>
+
+		<main class="animate-fade-in">
+			<div class="glass-panel" style="margin-bottom: 2rem;">
+				<h1>Add Beneficiary</h1>
+				<form id="bene-form" style="max-width: 500px;">
+					<div class="form-group">
+						<label>Beneficiary Name</label>
+						<input type="text" id="b-name" class="form-control" required>
+					</div>
+					<div class="form-group">
+						<label>Account Number</label>
+						<input type="text" id="b-acc" class="form-control" required>
+					</div>
+					<div class="form-group">
+						<label>Bank Name</label>
+						<input type="text" id="b-bank" class="form-control" required>
+					</div>
+					<button type="submit" class="btn btn-primary">Save Beneficiary</button>
+				</form>
+			</div>
+
+			<div class="glass-panel">
+				<h2>Your Beneficiaries</h2>
+				<table class="data-table" id="bene-table">
+					<thead>
+						<tr>
+							<th>Name</th>
+							<th>Account Number</th>
+							<th>Bank Name</th>
+						</tr>
+					</thead>
+					<tbody>
+						<!-- Populated by JS -->
+					</tbody>
+				</table>
+			</div>
+		</main>
+	</div>
+
+	<script src="js/app.js"></script>
+	<script>
+		document.addEventListener('DOMContentLoaded', async () => {
+			initNavbar();
+			if (!await fetchCurrentUser()) return;
+
+			loadBenes();
+
+			document.getElementById('bene-form').addEventListener('submit', async (e) => {
+				e.preventDefault();
+				const payload = {
+					beneName: document.getElementById('b-name').value,
+					accountNumber: document.getElementById('b-acc').value,
+					bankName: document.getElementById('b-bank').value
+				};
+
+				const res = await fetch('/api/bene/create', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(payload)
+				});
+                
+				if (res.ok) {
+					alert('Beneficiary added successfully!');
+					document.getElementById('bene-form').reset();
+					loadBenes();
+				} else {
+					alert('Error adding beneficiary');
+				}
+			});
+		});
+
+		async function loadBenes() {
+			const res = await fetch('/api/bene/list');
+			if (res.ok) {
+				const benes = await res.json();
+				const tbody = document.querySelector('#bene-table tbody');
+				tbody.innerHTML = '';
+				benes.forEach(b => {
+					tbody.innerHTML += `
+						<tr>
+							<td>${b.beneName}</td>
+							<td>${b.accountNumber}</td>
+							<td>${b.bankName}</td>
+						</tr>
+					`;
+				});
+			}
+		}
+	</script>
+</body>
+</html>
